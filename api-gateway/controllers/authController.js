@@ -2,25 +2,28 @@ var User = require('../models/user');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
 var config = require('../config');
+var bodyParser = require('body-parser')
 // Register a new user on POST 
 exports.user_register = function(req, res) {
     var hashedPassword = bcrypt.hashSync(req.body.password, 8);
-
+    console.log("Good!");
     var newUser = new User({
         username: req.body.username,
         password: hashedPassword,
         email: req.body.email
     });
-
-    User.addListener(newUser, (err, user) =>{
+    console.log("Object Created");
+    User.add(newUser, (err, user) =>{
         if (err){
+            console.log("Error with registration!");
             return res.status(500).send("There was a problem with registering the user.");
         }
-
+        console.log("No error with registration!");
         var token = jwt.sign({ id: user._id}, config.web.secret, {
             expiresIn: 86400
         });
         res.status(200).send({auth: true, token: token});
+        console.log("Sent information on JWT!");
     })
 }; 
 // Verify token on GET 
