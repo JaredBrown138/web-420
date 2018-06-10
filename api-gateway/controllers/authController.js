@@ -41,4 +41,25 @@ exports.user_token = function(req, res) {
             res.status(200).send(user);
         })
     });
-}; 
+};
+exports.user_login = function(req, res){
+    console.log(req.body.email);
+    User.getOne(req.body.email, function(err, user){
+        if (err) return res.status(500).send('Error on Server');
+        if (!user) return res.status(404).send('User not found');
+        
+        var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
+        
+        if(!passwordIsValid) return res.status(401).send({ auth: false, token: null});
+
+        var token = jwt.sign({id: user._id}, config.web.secret, {
+            expiresIn: 86400
+        });
+
+        res.status(200).send( {auth: true, token: token});
+    })
+}
+
+exports.user_logout = function(req, res){
+    res.status(200).send({auth: false, token: null});
+}
